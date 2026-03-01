@@ -1,5 +1,5 @@
 // ========================
-// 1) Questions (EN)
+// 1) Questions (EN) - original
 // ========================
 const EN_Q = [
   {
@@ -362,7 +362,42 @@ const TH_Q = [
 ];
 
 // ========================
-// 3) UI strings (TH/EN)
+// 3) EXTRA (Short Answer) - ALWAYS same text (no lang effect, no score)
+// ========================
+// ✅ ใส่รูป: ใช้ imgSrc เป็น path ของรูปในโปรเจกต์ เช่น "images/kernel-io.png"
+const EXTRA_Q = [
+  {
+    id: 101,
+    title: "Question 1",
+    prompt:
+      "จากภาพแสดง Kernel I/O structure จงอธิบายการทำงานของทุกส่วนที่ได้ศึกษาไป\n" +
+      "[From the diagram showing the Kernel I/O structure, explain how each component works as studied]",
+    imgSrc: "images/kernel-io.png", // <- เปลี่ยน path ได้
+    sampleAnswer:
+      "โปรแกรมจะเรียกใช้งานผ่าน system call interface → เข้าสู่ชั้น VFS/VNODE เพื่อจัดการไฟล์ → ใช้ page cache ช่วยลดการอ่านดิสก์ซ้ำ → ส่งต่อไปยังชั้น driver (เช่น CAM/ATA) → newbus → hardware\nสรุป: แบ่งเป็นชั้น ๆ เพื่อให้ใช้งานอุปกรณ์ได้ง่าย ปลอดภัย และแยกความรับผิดชอบ",
+  },
+  {
+    id: 102,
+    title: "Question 2",
+    prompt: "ขนาดของ Page มีผลกับการเกิด Fragmentation อย่างไร\n[How does page size affect fragmentation?]",
+    imgSrc: "",
+    sampleAnswer:
+      "Page ใหญ่ → internal fragmentation มากขึ้น (เหลือเศษใน page เยอะ) แต่ตารางเล็ก/จัดการง่าย\nPage เล็ก → internal fragmentation น้อยลง แต่ page table ใหญ่ขึ้น/ overhead มากขึ้น",
+  },
+  {
+    id: 103,
+    title: "Question 3",
+    prompt:
+      "Enhanced Second-Chance Page Replacement Algorithm มีหลักการเลือก Page ที่จะถูกแทนที่อย่างไร จงอธิบาย\n" +
+      "[Explain how the Enhanced Second-Chance Page Replacement Algorithm selects a page to be replaced.]",
+    imgSrc: "",
+    sampleAnswer:
+      "พิจารณา Reference bit (R) และ Modify/Dirty bit (M)\nเลือกออกตามลำดับความเหมาะสม: (R=0,M=0) ก่อน → (0,1) → (1,0) → (1,1)\nถ้า R=1 จะให้โอกาส (second chance) โดยเคลียร์ R แล้ววนหาใหม่",
+  },
+];
+
+// ========================
+// 4) UI strings (TH/EN) - affects ONLY multiple-choice UI
 // ========================
 const UI_STR = {
   th: {
@@ -372,9 +407,14 @@ const UI_STR = {
     needAll: "กรุณาตอบให้ครบทุกข้อก่อนกด Submit",
     score: (s, n) => `คะแนนของคุณ: ${s} / ${n}`,
     retry: "กด “เริ่มใหม่” เพื่อทำใหม่",
-    explainLabel: "อธิบาย:",
-    correctAns: "คำตอบที่ถูกต้อง:",
+    explain: (x) => `อธิบาย: ${x || "-"}`,
     qPrefix: (i) => `ข้อ ${i}: `,
+    correctAns: "คำตอบที่ถูกต้อง:",
+    // short-answer UI (ไม่ผูกภาษาโจทย์ แต่ปุ่มแปลได้)
+    showKey: "ดูเฉลยและเหตุผล",
+    hideKey: "ซ่อนเฉลย",
+    yourAnswer: "พิมพ์คำตอบของคุณที่นี่...",
+    section2: "Section 2: Short Answer (ไม่คิดคะแนน)",
   },
   en: {
     practice: "Practice mode (instant feedback)",
@@ -383,14 +423,18 @@ const UI_STR = {
     needAll: "Please answer every question before submitting.",
     score: (s, n) => `Your score: ${s} / ${n}`,
     retry: "Click “Restart” to try again",
-    explainLabel: "Explanation:",
-    correctAns: "Correct answer:",
+    explain: (x) => `Explanation: ${x || "-"}`,
     qPrefix: (i) => `Q${i}: `,
+    correctAns: "Correct answer:",
+    showKey: "Show answer key",
+    hideKey: "Hide answer key",
+    yourAnswer: "Type your answer here...",
+    section2: "Section 2: Short Answer (not scored)",
   },
 };
 
 // ========================
-// 4) Maps
+// 5) Maps
 // ========================
 function toMap(arr) {
   const m = new Map();
@@ -406,9 +450,9 @@ function getQ(currentLang, id) {
 }
 
 // ========================
-// 5) State
+// 6) State
 // ========================
-let lang = "en"; // default
+let lang = "en"; // EN default
 let practiceMode = false;
 
 let shuffledIds = []; // shuffle question order only once per run
@@ -416,11 +460,15 @@ let answers = new Map(); // id -> chosenKey (A/B/C/D)
 let lockedQ = new Set(); // locked per question in practice mode
 let lockedAll = false; // after submit
 
-// store choices order per question (persist across language toggle)
+// ✅ store choices order per question (persist across language toggle)
 let choiceOrder = new Map(); // id -> ["C","A","D","B"] etc. (keys only)
 
+// ✅ short-answer state (persist across language toggle)
+let shortAnswers = new Map(); // extraId -> text
+let revealedKeys = new Set(); // extraId -> show/hide
+
 // ========================
-// 6) Elements
+// 7) Elements
 // ========================
 const quizEl = document.getElementById("quiz");
 const submitBtn = document.getElementById("submitBtn");
@@ -431,7 +479,7 @@ const practiceToggle = document.getElementById("practiceToggle");
 const practiceLabel = document.getElementById("practiceLabel");
 
 // ========================
-// 7) Helpers
+// 8) Helpers
 // ========================
 function t(key, ...args) {
   const v = UI_STR[lang][key];
@@ -447,12 +495,9 @@ function shuffle(arr) {
 
 function ensureChoiceOrder(id) {
   if (choiceOrder.has(id)) return;
-
   const base = EN_MAP.get(id);
   const keys = ["A", "B", "C", "D"].filter((k) => base && base.choices[k] != null);
-
-  // shuffle keys once per run
-  choiceOrder.set(id, shuffle(keys));
+  choiceOrder.set(id, shuffle(keys)); // shuffle once per run
 }
 
 function allAnswered() {
@@ -460,7 +505,7 @@ function allAnswered() {
 }
 
 // ========================
-// 8) Render
+// 9) Render
 // ========================
 function render() {
   quizEl.innerHTML = "";
@@ -478,6 +523,7 @@ function render() {
     shuffledIds = shuffle(EN_Q.map((q) => q.id));
   }
 
+  // --- Multiple Choice ---
   shuffledIds.forEach((id, idx) => {
     const q = getQ(lang, id);
     ensureChoiceOrder(id);
@@ -509,8 +555,7 @@ function render() {
       if (lockedAll || (practiceMode && lockedQ.has(id))) input.disabled = true;
 
       const span = document.createElement("span");
-      // Do NOT show A/B/C/D in UI
-      span.textContent = q.choices[key];
+      span.textContent = q.choices[key]; // no A/B/C/D shown
 
       opt.appendChild(input);
       opt.appendChild(span);
@@ -519,7 +564,6 @@ function render() {
 
     card.appendChild(opts);
 
-    // If already locked in practice mode, re-apply result UI
     if (practiceMode && lockedQ.has(id)) {
       applyResultToCard(card, q, answers.get(id));
     }
@@ -528,11 +572,75 @@ function render() {
   });
 
   markChosenUI();
+
+  // --- Divider / Section 2 ---
+  const h2 = document.createElement("h2");
+  h2.style.marginTop = "22px";
+  h2.textContent = t("section2");
+  quizEl.appendChild(h2);
+
+  // --- Short Answer (NO scoring, NO lang effect on prompt) ---
+  EXTRA_Q.forEach((x, i) => {
+    const card = document.createElement("div");
+    card.className = "qcard";
+    card.dataset.extraid = x.id;
+
+    const title = document.createElement("p");
+    title.className = "qtitle";
+    title.style.whiteSpace = "pre-line";
+    title.textContent = `${x.title}: ${x.prompt}`;
+    card.appendChild(title);
+
+    if (x.imgSrc) {
+      const img = document.createElement("img");
+      img.src = x.imgSrc;
+      img.alt = x.title;
+      img.style.width = "100%";
+      img.style.maxWidth = "760px";
+      img.style.borderRadius = "10px";
+      img.style.border = "1px solid var(--border)";
+      img.style.margin = "10px 0";
+      card.appendChild(img);
+    }
+
+    const ta = document.createElement("textarea");
+    ta.className = "short-answer";
+    ta.rows = 5;
+    ta.placeholder = t("yourAnswer");
+    ta.value = shortAnswers.get(x.id) || "";
+    ta.addEventListener("input", () => shortAnswers.set(x.id, ta.value));
+    card.appendChild(ta);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn secondary";
+    btn.style.marginTop = "10px";
+    btn.textContent = revealedKeys.has(x.id) ? t("hideKey") : t("showKey");
+    btn.addEventListener("click", () => {
+      if (revealedKeys.has(x.id)) revealedKeys.delete(x.id);
+      else revealedKeys.add(x.id);
+      render(); // re-render only UI state (text preserved in shortAnswers)
+    });
+    card.appendChild(btn);
+
+    if (revealedKeys.has(x.id)) {
+      const exp = document.createElement("div");
+      exp.className = "explain";
+      exp.style.whiteSpace = "pre-line";
+      exp.innerHTML =
+        `<strong>${t("correctAns")}</strong> ${x.sampleAnswer}`;
+      card.appendChild(exp);
+    }
+
+    quizEl.appendChild(card);
+  });
 }
 
 function markChosenUI() {
   document.querySelectorAll(".qcard").forEach((card) => {
-    const id = Number(card.dataset.qid);
+    const qid = card.dataset.qid;
+    if (!qid) return;
+    const id = Number(qid);
     const chosen = answers.get(id) || null;
     card.querySelectorAll(".option").forEach((opt) => {
       opt.classList.toggle("chosen", opt.dataset.key === chosen);
@@ -540,12 +648,11 @@ function markChosenUI() {
   });
 }
 
-// ✅ FIX: show explanation for BOTH correct & wrong (practice + submit)
+// ✅ show explanation BOTH correct & wrong (MC only)
 function applyResultToCard(card, q, chosen) {
   card.classList.remove("correct", "wrong");
   card.querySelectorAll(".explain").forEach((e) => e.remove());
 
-  // dim non-chosen
   card.querySelectorAll(".option").forEach((opt) => {
     const isChosen = opt.dataset.key === chosen;
     opt.classList.toggle("dim", !isChosen);
@@ -554,40 +661,20 @@ function applyResultToCard(card, q, chosen) {
   const exp = document.createElement("div");
   exp.className = "explain";
 
-  const correctText = q.choices[q.answer] ?? "";
-  const explanationText = q.explanation ?? "-";
-
   if (chosen === q.answer) {
     card.classList.add("correct");
-    exp.textContent = `${t("explainLabel")} ${explanationText}`;
+    exp.textContent = t("explain", q.explanation);
   } else {
     card.classList.add("wrong");
-
-    // Build explanation block safely (no HTML injection)
-    const line1 = document.createElement("div");
-    line1.innerHTML = `<strong>${t("correctAns")}</strong> ${escapeHtml(correctText)}`;
-
-    const line2 = document.createElement("div");
-    line2.textContent = `${t("explainLabel")} ${explanationText}`;
-
-    exp.appendChild(line1);
-    exp.appendChild(line2);
+    const correctText = q.choices[q.answer];
+    exp.innerHTML = `<strong>${t("correctAns")}</strong> ${correctText}<br>${t("explain", q.explanation)}`;
   }
 
   card.appendChild(exp);
 }
 
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
 // ========================
-// 9) Events
+// 10) Events
 // ========================
 quizEl.addEventListener("change", (e) => {
   if (!(e.target instanceof HTMLInputElement)) return;
@@ -602,7 +689,6 @@ quizEl.addEventListener("change", (e) => {
   answers.set(id, chosen);
   markChosenUI();
 
-  // Practice mode: instant feedback + lock question
   if (practiceMode) {
     const q = getQ(lang, id);
     const card = document.querySelector(`.qcard[data-qid="${id}"]`);
@@ -645,21 +731,23 @@ submitBtn.addEventListener("click", () => {
 });
 
 restartBtn.addEventListener("click", () => {
-  // reshuffle ONLY on restart
   shuffledIds = [];
   answers.clear();
   lockedQ.clear();
   lockedAll = false;
 
-  // reshuffle choice order only on restart
   choiceOrder.clear();
+
+  // ✅ reset short-answer section too (ถ้าอยากให้ล้างคำตอบด้วย)
+  shortAnswers.clear();
+  revealedKeys.clear();
 
   render();
 });
 
 if (langBtn) {
   langBtn.addEventListener("click", () => {
-    // toggle language: DO NOT reshuffle question/choices
+    // ✅ toggle language: affects ONLY MC (and UI labels)
     lang = lang === "th" ? "en" : "th";
     render();
   });
