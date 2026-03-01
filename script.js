@@ -386,18 +386,20 @@ const SHORT_Q = [
     img: "kernel.png", // ✅ file in same folder
     placeholder: "พิมพ์คำตอบ/แนวคิดของคุณที่นี่...",
     answers: {
-      th: `โปรแกรมไม่คุยกับอุปกรณ์โดยตรง แต่ผ่านชั้นของ Kernel
+      th: `เวลาที่โปรแกรมจะอ่านหรือเขียนข้อมูลมันจะไม่คุยกับอุปกรณ์โดยตรงมันต้องผ่านระบบกลางก่อน
 
-ลำดับภาพรวม:
-Program → System call → VFS/VNODE → File system (UFS/FFS/NFS) → Page cache → Driver (CAM/ATA/Network) → Hardware
+ลำดับง่าย ๆ คือ
+โปรแกรม → ระบบปฏิบัติการ → ตัวจัดการไฟล์ → ตัวเก็บข้อมูลชั่วคราว (ใน RAM) → ไดรเวอร์ → อุปกรณ์จริง
 
-แนวคิดสำคัญ: แบ่งเป็นหลายชั้นเพื่อให้ “ใช้งานง่าย/ปลอดภัย/รองรับหลายอุปกรณ์และหลายไฟล์ซิสเต็ม”`,
-      en: `Programs do not talk to devices directly. They go through kernel layers.
+สรุปง่าย ๆ :
+ระบบแบ่งเป็นหลายชั้น เพื่อให้โปรแกรมใช้งานอุปกรณ์ได้ง่ายและปลอดภัย`,
+      en: `เวลาที่โปรแกรมจะอ่านหรือเขียนข้อมูลมันจะไม่คุยกับอุปกรณ์โดยตรงมันต้องผ่านระบบกลางก่อน
 
-Overall flow:
-Program → system call → VFS/VNODE → file system (UFS/FFS/NFS) → page cache → drivers (CAM/ATA/Network) → hardware
+ลำดับง่าย ๆ คือ
+โปรแกรม → ระบบปฏิบัติการ → ตัวจัดการไฟล์ → ตัวเก็บข้อมูลชั่วคราว (ใน RAM) → ไดรเวอร์ → อุปกรณ์จริง
 
-Key idea: layered design provides abstraction, safety, and supports many devices/filesystems.`,
+สรุปง่าย ๆ :
+ระบบแบ่งเป็นหลายชั้น เพื่อให้โปรแกรมใช้งานอุปกรณ์ได้ง่ายและปลอดภัย`,
     },
   },
   {
