@@ -364,7 +364,7 @@ const TH_Q = [
 // ========================
 // 3) UI strings (TH/EN)
 // ========================
-const UI = {
+const UI_STR = {
   th: {
     practice: "โหมดฝึก (ตอบแล้วรู้ผล)",
     restart: "เริ่มใหม่",
@@ -403,20 +403,16 @@ function getQ(currentLang, id) {
 // ========================
 // 4) State
 // ========================
-
-// ✅ EN is the default language
-let lang = "en";
-
+let lang = "en"; // EN default
 let practiceMode = false;
 
-let shuffledIds = []; // shuffled order by question id
-let answers = new Map(); // id -> chosenKey
+let shuffledIds = []; // shuffle question order only once per run
+let answers = new Map(); // id -> chosenKey (A/B/C/D internal)
 let lockedQ = new Set(); // locked in practice mode
 let lockedAll = false; // after submit
 
-// ✅ remember choice shuffles per question (persist across language toggle)
-let choiceOrder = new Map(); // id -> ["A","B","C","D"] (fixed)
-let choiceShuffle = new Map(); // id -> Map(originalKey -> shownKey)
+// ✅ store choices order per question (persist across language toggle)
+let choiceOrder = new Map(); // id -> ["C","A","D","B"] etc. (keys only)
 
 // ========================
 // 5) Elements
@@ -433,7 +429,7 @@ const practiceLabel = document.getElementById("practiceLabel");
 // 6) Helpers
 // ========================
 function t(key, ...args) {
-  const v = UI[lang][key];
+  const v = UI_STR[lang][key];
   return typeof v === "function" ? v(...args) : v;
 }
 function shuffle(arr) {
@@ -443,45 +439,16 @@ function shuffle(arr) {
     .map((x) => x.v);
 }
 
-// ---- Choice shuffle logic (shuffle ONLY answer text, keep A/B/C/D positions) ----
-function getChoiceKeys(q) {
-  return ["A", "B", "C", "D"].filter((k) => q.choices[k] != null);
-}
+function ensureChoiceOrder(id) {
+  // create once per run (not on language toggle)
+  if (choiceOrder.has(id)) return;
 
-function ensureChoiceShuffleForQuestion(id) {
-  if (choiceShuffle.has(id)) return;
+  // Use EN as base keys A/B/C/D (same keys exist in TH)
+  const base = EN_MAP.get(id);
+  const keys = ["A", "B", "C", "D"].filter((k) => base && base.choices[k] != null);
 
-  const keys = ["A", "B", "C", "D"];
-  const shuffled = shuffle([...keys]);
-
-  // map: originalKey -> shownUnderKey
-  const map = new Map();
-  keys.forEach((origKey, i) => map.set(origKey, shuffled[i]));
-  choiceShuffle.set(id, map);
-
-  // display order fixed A,B,C,D
-  choiceOrder.set(id, keys);
-}
-
-function getDisplayedChoiceLabel(q, shownKey) {
-  const map = choiceShuffle.get(q.id);
-  if (!map) return q.choices[shownKey];
-
-  // find original key whose mapped shownKey == shownKey
-  let origKeyFound = shownKey;
-  for (const [origKey, mappedShownKey] of map.entries()) {
-    if (mappedShownKey === shownKey) {
-      origKeyFound = origKey;
-      break;
-    }
-  }
-  return q.choices[origKeyFound];
-}
-
-function getDisplayedAnswerKey(q) {
-  const map = choiceShuffle.get(q.id);
-  if (!map) return q.answer;
-  return map.get(q.answer) || q.answer; // original answer -> shown key
+  // shuffle keys once
+  choiceOrder.set(id, shuffle(keys));
 }
 
 // ========================
@@ -492,23 +459,20 @@ function render() {
   summaryEl.hidden = true;
   submitBtn.disabled = lockedAll;
 
-  // labels/buttons
   if (practiceLabel) practiceLabel.textContent = t("practice");
   if (langBtn) langBtn.textContent = lang === "th" ? "EN" : "TH";
   if (restartBtn) restartBtn.textContent = t("restart");
   if (submitBtn) submitBtn.textContent = t("submit");
   if (practiceToggle) practiceToggle.checked = practiceMode;
 
-  // first time shuffle (ONLY once per run)
+  // shuffle question order only once per run
   if (shuffledIds.length === 0) {
     shuffledIds = shuffle(EN_Q.map((q) => q.id));
   }
 
   shuffledIds.forEach((id, idx) => {
     const q = getQ(lang, id);
-
-    // ensure choice shuffle exists for this question id (persist across language toggle)
-    ensureChoiceShuffleForQuestion(id);
+    ensureChoiceOrder(id);
 
     const card = document.createElement("div");
     card.className = "qcard";
@@ -522,7 +486,7 @@ function render() {
     const opts = document.createElement("div");
     opts.className = "options";
 
-    const keys = choiceOrder.get(id) || getChoiceKeys(q); // A,B,C,D fixed
+    const keys = choiceOrder.get(id); // stable order across language toggle
     keys.forEach((key) => {
       const opt = document.createElement("label");
       opt.className = "option";
@@ -531,14 +495,14 @@ function render() {
       const input = document.createElement("input");
       input.type = "radio";
       input.name = `q_${id}`;
-      input.value = key;
+      input.value = key; // keep internal key A/B/C/D
 
       if (answers.get(id) === key) input.checked = true;
       if (lockedAll || (practiceMode && lockedQ.has(id))) input.disabled = true;
 
       const span = document.createElement("span");
-      const label = getDisplayedChoiceLabel(q, key);
-      span.textContent = `${key}. ${label}`;
+      // ✅ remove "A. B. C. D." from UI
+      span.textContent = q.choices[key];
 
       opt.appendChild(input);
       opt.appendChild(span);
@@ -547,7 +511,6 @@ function render() {
 
     card.appendChild(opts);
 
-    // Practice mode: show result immediately if this question already locked
     if (practiceMode && lockedQ.has(id)) {
       applyResultToCard(card, q, answers.get(id));
     }
@@ -572,15 +535,12 @@ function applyResultToCard(card, q, chosen) {
   card.classList.remove("correct", "wrong");
   card.querySelectorAll(".explain").forEach((e) => e.remove());
 
-  // dim non-chosen
   card.querySelectorAll(".option").forEach((opt) => {
     const isChosen = opt.dataset.key === chosen;
     opt.classList.toggle("dim", !isChosen);
   });
 
-  const correctKey = getDisplayedAnswerKey(q);
-
-  if (chosen === correctKey) {
+  if (chosen === q.answer) {
     card.classList.add("correct");
     const exp = document.createElement("div");
     exp.className = "explain";
@@ -611,7 +571,6 @@ quizEl.addEventListener("change", (e) => {
   answers.set(id, chosen);
   markChosenUI();
 
-  // Practice mode: instant feedback + lock question
   if (practiceMode) {
     const q = getQ(lang, id);
     const card = document.querySelector(`.qcard[data-qid="${id}"]`);
@@ -645,8 +604,7 @@ submitBtn.addEventListener("click", () => {
     card.querySelectorAll("input").forEach((i) => (i.disabled = true));
     applyResultToCard(card, q, chosen);
 
-    const correctKey = getDisplayedAnswerKey(q);
-    if (chosen === correctKey) score++;
+    if (chosen === q.answer) score++;
   });
 
   summaryEl.hidden = false;
@@ -655,22 +613,23 @@ submitBtn.addEventListener("click", () => {
 });
 
 restartBtn.addEventListener("click", () => {
+  // ✅ reshuffle ONLY on restart
   shuffledIds = [];
   answers.clear();
   lockedQ.clear();
   lockedAll = false;
 
-  // ✅ re-shuffle choices ONLY on restart
+  // choices reshuffle only on restart
   choiceOrder.clear();
-  choiceShuffle.clear();
 
   render();
 });
 
 if (langBtn) {
   langBtn.addEventListener("click", () => {
+    // ✅ toggle language: DO NOT reshuffle question/choices
     lang = lang === "th" ? "en" : "th";
-    render(); // ✅ re-render only (no reshuffle)
+    render();
   });
 }
 
