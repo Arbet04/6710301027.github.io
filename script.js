@@ -186,7 +186,7 @@ const TH_Q = [
     text: "หน่วยความจำหลัก (Main memory) ใช้เก็บ/รองรับ __________",
     choices: { A: "ทั้งหมดที่กล่าวมา", B: "CPU", C: "ระบบปฏิบัติการ", D: "โปรเซสของผู้ใช้" },
     answer: "C",
-    explanation: "โดยแนวข้อสอบนี้มักเน้นว่า Main memory รองรับ OS และโปรแกรมที่กำลังทำงานอยู่",
+    explanation: "แนวข้อสอบนี้มักเน้นว่า Main memory รองรับ OS และโปรแกรมที่กำลังทำงานอยู่",
   },
   {
     id: 2,
@@ -395,21 +395,24 @@ function toMap(arr) {
 const EN_MAP = toMap(EN_Q);
 const TH_MAP = toMap(TH_Q);
 
-function getQ(lang, id) {
-  const m = lang === "th" ? TH_MAP : EN_MAP;
-  return m.get(id) || EN_MAP.get(id); // เผื่อกรณีไทยไม่ครบ จะ fallback อังกฤษ
+function getQ(currentLang, id) {
+  const m = currentLang === "th" ? TH_MAP : EN_MAP;
+  return m.get(id) || EN_MAP.get(id);
 }
 
 // ========================
 // 4) State
 // ========================
-let lang = "th";
+
+// ✅ EN is the default language
+let lang = "en";
+
 let practiceMode = false;
 
-let shuffledIds = []; // สุ่มลำดับข้อ (เก็บแค่ id)
+let shuffledIds = []; // shuffled order by question id
 let answers = new Map(); // id -> chosenKey
-let lockedQ = new Set(); // ข้อที่ล็อกในโหมดฝึก
-let lockedAll = false; // หลัง submit
+let lockedQ = new Set(); // locked in practice mode
+let lockedAll = false; // after submit
 
 // ========================
 // 5) Elements
@@ -436,7 +439,7 @@ function shuffle(arr) {
     .map((x) => x.v);
 }
 function shuffleChoices(q) {
-  // (3) สุ่มลำดับช้อยส์ โดยยังเก็บ key A/B/C/D เหมือนเดิม
+  // (3) shuffle choices order while keeping A/B/C/D keys
   return shuffle(Object.entries(q.choices)); // [ [key,label], ... ]
 }
 
@@ -449,11 +452,11 @@ function render() {
   submitBtn.disabled = lockedAll;
 
   // labels/buttons
-  practiceLabel.textContent = t("practice");
-  langBtn.textContent = lang === "th" ? "EN" : "TH";
-  restartBtn.textContent = t("restart");
-  submitBtn.textContent = t("submit");
-  practiceToggle.checked = practiceMode;
+  if (practiceLabel) practiceLabel.textContent = t("practice");
+  if (langBtn) langBtn.textContent = lang === "th" ? "EN" : "TH"; // show other language
+  if (restartBtn) restartBtn.textContent = t("restart");
+  if (submitBtn) submitBtn.textContent = t("submit");
+  if (practiceToggle) practiceToggle.checked = practiceMode;
 
   // first time shuffle
   if (shuffledIds.length === 0) {
@@ -611,17 +614,20 @@ restartBtn.addEventListener("click", () => {
   render();
 });
 
-langBtn.addEventListener("click", () => {
-  lang = lang === "th" ? "en" : "th";
-  render();
-});
+if (langBtn) {
+  langBtn.addEventListener("click", () => {
+    lang = lang === "th" ? "en" : "th";
+    render();
+  });
+}
 
-practiceToggle.addEventListener("change", () => {
-  practiceMode = practiceToggle.checked;
-  // ถ้าเปิดโหมดฝึกหลังจากตอบไปแล้ว ให้ล็อกเฉพาะข้อที่ตอบแล้ว
-  lockedQ = practiceMode ? new Set([...answers.keys()]) : new Set();
-  render();
-});
+if (practiceToggle) {
+  practiceToggle.addEventListener("change", () => {
+    practiceMode = practiceToggle.checked;
+    lockedQ = practiceMode ? new Set([...answers.keys()]) : new Set();
+    render();
+  });
+}
 
 // start
 render();
