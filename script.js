@@ -167,13 +167,13 @@ const EN_Q = [
   },
   {
     id: 20,
-  text:
-    "For 3 page frames, the following is the reference string:\n" +
-    "7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1\n" +
-    "How many page faults does the LRU page replacement algorithm produce?",
-  choices: { A: "15", B: "12", C: "11", D: "10" },
-  answer: "B",
-  explanation: "For 3 frames, LRU produces 12 page faults for this reference string.",
+    text:
+      "For 3 page frames, the following is the reference string:\n" +
+      "7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1\n" +
+      "How many page faults does the LRU page replacement algorithm produce?",
+    choices: { A: "15", B: "12", C: "11", D: "10" },
+    answer: "B",
+    explanation: "For 3 frames, LRU produces 12 page faults for this reference string.",
   },
 ];
 
@@ -351,13 +351,13 @@ const TH_Q = [
   },
   {
     id: 20,
-  text:
-    "สำหรับ page frame 3 ช่อง มี reference string:\n" +
-    "7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1\n" +
-    "อัลกอริทึม LRU จะเกิด page fault กี่ครั้ง",
-  choices: { A: "15", B: "12", C: "11", D: "10" },
-  answer: "B",
-  explanation: "เมื่อมี 3 เฟรม ค่า page faults ของ LRU สำหรับชุดนี้ = 12",
+    text:
+      "สำหรับ page frame 3 ช่อง มี reference string:\n" +
+      "7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1\n" +
+      "อัลกอริทึม LRU จะเกิด page fault กี่ครั้ง",
+    choices: { A: "15", B: "12", C: "11", D: "10" },
+    answer: "B",
+    explanation: "เมื่อมี 3 เฟรม ค่า page faults ของ LRU สำหรับชุดนี้ = 12",
   },
 ];
 
@@ -414,6 +414,10 @@ let answers = new Map(); // id -> chosenKey
 let lockedQ = new Set(); // locked in practice mode
 let lockedAll = false; // after submit
 
+// ✅ remember choice shuffles per question (persist across language toggle)
+let choiceOrder = new Map(); // id -> ["A","B","C","D"] (fixed)
+let choiceShuffle = new Map(); // id -> Map(originalKey -> shownKey)
+
 // ========================
 // 5) Elements
 // ========================
@@ -438,9 +442,46 @@ function shuffle(arr) {
     .sort((a, b) => a.r - b.r)
     .map((x) => x.v);
 }
-function shuffleChoices(q) {
-  // (3) shuffle choices order while keeping A/B/C/D keys
-  return shuffle(Object.entries(q.choices)); // [ [key,label], ... ]
+
+// ---- Choice shuffle logic (shuffle ONLY answer text, keep A/B/C/D positions) ----
+function getChoiceKeys(q) {
+  return ["A", "B", "C", "D"].filter((k) => q.choices[k] != null);
+}
+
+function ensureChoiceShuffleForQuestion(id) {
+  if (choiceShuffle.has(id)) return;
+
+  const keys = ["A", "B", "C", "D"];
+  const shuffled = shuffle([...keys]);
+
+  // map: originalKey -> shownUnderKey
+  const map = new Map();
+  keys.forEach((origKey, i) => map.set(origKey, shuffled[i]));
+  choiceShuffle.set(id, map);
+
+  // display order fixed A,B,C,D
+  choiceOrder.set(id, keys);
+}
+
+function getDisplayedChoiceLabel(q, shownKey) {
+  const map = choiceShuffle.get(q.id);
+  if (!map) return q.choices[shownKey];
+
+  // find original key whose mapped shownKey == shownKey
+  let origKeyFound = shownKey;
+  for (const [origKey, mappedShownKey] of map.entries()) {
+    if (mappedShownKey === shownKey) {
+      origKeyFound = origKey;
+      break;
+    }
+  }
+  return q.choices[origKeyFound];
+}
+
+function getDisplayedAnswerKey(q) {
+  const map = choiceShuffle.get(q.id);
+  if (!map) return q.answer;
+  return map.get(q.answer) || q.answer; // original answer -> shown key
 }
 
 // ========================
@@ -453,18 +494,21 @@ function render() {
 
   // labels/buttons
   if (practiceLabel) practiceLabel.textContent = t("practice");
-  if (langBtn) langBtn.textContent = lang === "th" ? "EN" : "TH"; // show other language
+  if (langBtn) langBtn.textContent = lang === "th" ? "EN" : "TH";
   if (restartBtn) restartBtn.textContent = t("restart");
   if (submitBtn) submitBtn.textContent = t("submit");
   if (practiceToggle) practiceToggle.checked = practiceMode;
 
-  // first time shuffle
+  // first time shuffle (ONLY once per run)
   if (shuffledIds.length === 0) {
     shuffledIds = shuffle(EN_Q.map((q) => q.id));
   }
 
   shuffledIds.forEach((id, idx) => {
     const q = getQ(lang, id);
+
+    // ensure choice shuffle exists for this question id (persist across language toggle)
+    ensureChoiceShuffleForQuestion(id);
 
     const card = document.createElement("div");
     card.className = "qcard";
@@ -478,8 +522,8 @@ function render() {
     const opts = document.createElement("div");
     opts.className = "options";
 
-    const entries = shuffleChoices(q);
-    entries.forEach(([key, label]) => {
+    const keys = choiceOrder.get(id) || getChoiceKeys(q); // A,B,C,D fixed
+    keys.forEach((key) => {
       const opt = document.createElement("label");
       opt.className = "option";
       opt.dataset.key = key;
@@ -493,6 +537,7 @@ function render() {
       if (lockedAll || (practiceMode && lockedQ.has(id))) input.disabled = true;
 
       const span = document.createElement("span");
+      const label = getDisplayedChoiceLabel(q, key);
       span.textContent = `${key}. ${label}`;
 
       opt.appendChild(input);
@@ -533,7 +578,9 @@ function applyResultToCard(card, q, chosen) {
     opt.classList.toggle("dim", !isChosen);
   });
 
-  if (chosen === q.answer) {
+  const correctKey = getDisplayedAnswerKey(q);
+
+  if (chosen === correctKey) {
     card.classList.add("correct");
     const exp = document.createElement("div");
     exp.className = "explain";
@@ -564,7 +611,7 @@ quizEl.addEventListener("change", (e) => {
   answers.set(id, chosen);
   markChosenUI();
 
-  // (5) Practice mode: instant feedback + lock question
+  // Practice mode: instant feedback + lock question
   if (practiceMode) {
     const q = getQ(lang, id);
     const card = document.querySelector(`.qcard[data-qid="${id}"]`);
@@ -598,7 +645,8 @@ submitBtn.addEventListener("click", () => {
     card.querySelectorAll("input").forEach((i) => (i.disabled = true));
     applyResultToCard(card, q, chosen);
 
-    if (chosen === q.answer) score++;
+    const correctKey = getDisplayedAnswerKey(q);
+    if (chosen === correctKey) score++;
   });
 
   summaryEl.hidden = false;
@@ -611,13 +659,18 @@ restartBtn.addEventListener("click", () => {
   answers.clear();
   lockedQ.clear();
   lockedAll = false;
+
+  // ✅ re-shuffle choices ONLY on restart
+  choiceOrder.clear();
+  choiceShuffle.clear();
+
   render();
 });
 
 if (langBtn) {
   langBtn.addEventListener("click", () => {
     lang = lang === "th" ? "en" : "th";
-    render();
+    render(); // ✅ re-render only (no reshuffle)
   });
 }
 
