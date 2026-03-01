@@ -3,31 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>แบบทดสอบ Software Engineering</title>
+  <title>Software Engineering Quiz</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="hero">
     <div class="container">
-      <h1>แบบทดสอบ Software Engineering</h1>
-      <p>ฝึกทำข้อสอบ ปรับยาก-ง่าย พร้อมสรุปคะแนนทันที</p>
+      <h1>Software Engineering Quiz</h1>
+      <p>Practice multiple-choice questions with instant scoring.</p>
     </div>
   </header>
 
   <main class="container">
     <section class="card">
       <div class="row">
-        <h2>ส่วนที่ 1: ปรนัย (Multiple Choice)</h2>
+        <h2>Section 1: Multiple Choice</h2>
 
         <!-- Controls: Practice + Language + Restart -->
         <div class="controls">
           <label class="toggle">
             <input id="practiceToggle" type="checkbox" />
-            <span id="practiceLabel">โหมดฝึก (ตอบแล้วรู้ผล)</span>
+            <span id="practiceLabel">Practice mode (instant feedback)</span>
           </label>
 
-          <button id="langBtn" class="btn secondary" type="button">EN</button>
-          <button id="restartBtn" class="btn secondary" type="button">เริ่มใหม่</button>
+          <!-- button shows the OTHER language to switch to -->
+          <button id="langBtn" class="btn secondary" type="button">TH</button>
+          <button id="restartBtn" class="btn secondary" type="button">Restart</button>
         </div>
       </div>
 
@@ -41,6 +42,7 @@
     </section>
   </main>
 
-  <script src="script.js"></script>
+  <!-- ✅ cache-buster: change v= number whenever you update script.js -->
+  <script src="script.js?v=3"></script>
 </body>
 </html>
