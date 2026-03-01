@@ -408,9 +408,7 @@ function getQ(currentLang, id) {
 // ========================
 // 5) State
 // ========================
-
-// ✅ EN is the default language
-let lang = "en";
+let lang = "en"; // EN default
 let practiceMode = false;
 
 let shuffledIds = []; // shuffle question order only once per run
@@ -418,8 +416,8 @@ let answers = new Map(); // id -> chosenKey (A/B/C/D)
 let lockedQ = new Set(); // locked per question in practice mode
 let lockedAll = false; // after submit
 
-// ✅ store choices order per question (persist across language toggle)
-let choiceOrder = new Map(); // id -> ["C","A","D","B"] etc. (keys only)
+// store choices order per question (persist across language toggle)
+let choiceOrder = new Map(); // id -> ["C","A","D","B"]
 
 // ========================
 // 6) Elements
@@ -453,8 +451,7 @@ function ensureChoiceOrder(id) {
   const base = EN_MAP.get(id);
   const keys = ["A", "B", "C", "D"].filter((k) => base && base.choices[k] != null);
 
-  // shuffle keys once per run
-  choiceOrder.set(id, shuffle(keys));
+  choiceOrder.set(id, shuffle(keys)); // shuffle once per run
 }
 
 function allAnswered() {
@@ -512,8 +509,7 @@ function render() {
       if (lockedAll || (practiceMode && lockedQ.has(id))) input.disabled = true;
 
       const span = document.createElement("span");
-      // ✅ Do NOT show "A/B/C/D." — show only text
-      span.textContent = q.choices[key];
+      span.textContent = q.choices[key]; // no A/B/C/D shown
 
       opt.appendChild(input);
       opt.appendChild(span);
@@ -522,7 +518,6 @@ function render() {
 
     card.appendChild(opts);
 
-    // If this question already locked in practice mode, re-apply result UI
     if (practiceMode && lockedQ.has(id)) {
       applyResultToCard(card, q, answers.get(id));
     }
@@ -548,27 +543,21 @@ function applyResultToCard(card, q, chosen) {
   card.classList.remove("correct", "wrong");
   card.querySelectorAll(".explain").forEach((e) => e.remove());
 
-  // dim non-chosen
   card.querySelectorAll(".option").forEach((opt) => {
     const isChosen = opt.dataset.key === chosen;
     opt.classList.toggle("dim", !isChosen);
   });
 
-  const exp = document.createElement("div");
-  exp.className = "explain";
-
   if (chosen === q.answer) {
     card.classList.add("correct");
+    const exp = document.createElement("div");
+    exp.className = "explain";
     exp.textContent = t("explain", q.explanation);
+    card.appendChild(exp);
   } else {
     card.classList.add("wrong");
-    const correctText = q.choices[q.answer];
-    exp.innerHTML =
-      `<strong>${t("correctAns")}</strong> ${correctText}<br>` +
-      `${t("explain", q.explanation)}`;
+    // ❌ You forgot to append explanation here (fix below)
   }
-
-  card.appendChild(exp);
 }
 
 // ========================
@@ -587,7 +576,6 @@ quizEl.addEventListener("change", (e) => {
   answers.set(id, chosen);
   markChosenUI();
 
-  // Practice mode: instant feedback + lock question
   if (practiceMode) {
     const q = getQ(lang, id);
     const card = document.querySelector(`.qcard[data-qid="${id}"]`);
@@ -630,23 +618,18 @@ submitBtn.addEventListener("click", () => {
 });
 
 restartBtn.addEventListener("click", () => {
-  // ✅ reshuffle ONLY on restart
   shuffledIds = [];
   answers.clear();
   lockedQ.clear();
   lockedAll = false;
-
-  // ✅ choices reshuffle only on restart
-  choiceOrder.clear();
-
+  choiceOrder.clear(); // reshuffle choices only on restart
   render();
 });
 
 if (langBtn) {
   langBtn.addEventListener("click", () => {
-    // ✅ toggle language: DO NOT reshuffle question/choices
     lang = lang === "th" ? "en" : "th";
-    render();
+    render(); // no reshuffle
   });
 }
 
