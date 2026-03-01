@@ -1,3 +1,17 @@
+// =======================================================
+// Operating System Quiz - script.js (FULL REPLACE)
+// Features:
+// - EN default, toggle TH/EN without reshuffling
+// - Shuffle question order only on first load + Restart
+// - Shuffle choices only on first load + Restart (persist across language toggle)
+// - Do not show A/B/C/D labels (show text only)
+// - Practice mode: instant feedback + lock question after answered
+// - Submit: show per-question correct/wrong + explanation
+// - Add 3 Short Answer questions at the end (no scoring)
+//   + Each has "Show/Hide guideline answer" button
+//   + Q1 supports image (kernel.png) in same folder
+// =======================================================
+
 // ========================
 // 1) Questions (EN) - original
 // ========================
@@ -178,7 +192,7 @@ const EN_Q = [
 ];
 
 // ========================
-// 2) Questions (TH) - translated
+// 2) Questions (TH) - translated 20/20
 // ========================
 const TH_Q = [
   {
@@ -362,36 +376,78 @@ const TH_Q = [
 ];
 
 // ========================
-// 3) Extra (Short Answer) - Always same prompt (no language toggle effect)
+// 3) Short Answer questions (NO scoring)
 // ========================
 const SHORT_Q = [
   {
     id: "S1",
-    title:
-      'จากภาพแสดง Kernel I/O structure จงอธิบายการทำงานของทุกส่วนที่ได้ศึกษาไป',
-    subtitle:
-      "[From the diagram showing the Kernel I/O structure, explain how each component works as studied]",
-    img: "kernel.png",
+    title: 'จากภาพแสดง Kernel I/O structure จงอธิบายการทำงานของทุกส่วนที่ได้ศึกษาไป',
+    subtitle: "[From the diagram showing the Kernel I/O structure, explain how each component works as studied]",
+    img: "kernel.png", // ✅ file in same folder
     placeholder: "พิมพ์คำตอบ/แนวคิดของคุณที่นี่...",
+    answers: {
+      th: `โปรแกรมไม่คุยกับอุปกรณ์โดยตรง แต่ผ่านชั้นของ Kernel
+
+ลำดับภาพรวม:
+Program → System call → VFS/VNODE → File system (UFS/FFS/NFS) → Page cache → Driver (CAM/ATA/Network) → Hardware
+
+แนวคิดสำคัญ: แบ่งเป็นหลายชั้นเพื่อให้ “ใช้งานง่าย/ปลอดภัย/รองรับหลายอุปกรณ์และหลายไฟล์ซิสเต็ม”`,
+      en: `Programs do not talk to devices directly. They go through kernel layers.
+
+Overall flow:
+Program → system call → VFS/VNODE → file system (UFS/FFS/NFS) → page cache → drivers (CAM/ATA/Network) → hardware
+
+Key idea: layered design provides abstraction, safety, and supports many devices/filesystems.`,
+    },
   },
   {
     id: "S2",
     title: "ขนาดของ Page มีผลกับการเกิด Fragmentation อย่างไร",
     subtitle: "[How does page size affect fragmentation?]",
     placeholder: "พิมพ์คำตอบ/แนวคิดของคุณที่นี่...",
+    answers: {
+      th: `Page ใหญ่ → internal fragmentation สูง (ท้ายก้อนเหลือมาก เสียพื้นที่)
+แต่ข้อดี: page table เล็ก/จัดการง่ายขึ้น
+
+Page เล็ก → internal fragmentation น้อยลง
+แต่ข้อเสีย: ต้องมี page มากขึ้น → page table ใหญ่/จัดการซับซ้อนขึ้น`,
+      en: `Large pages → higher internal fragmentation (more wasted space inside a page),
+but smaller page tables / less management overhead.
+
+Small pages → less internal fragmentation,
+but more pages → larger page tables / more overhead.`,
+    },
   },
   {
     id: "S3",
-    title:
-      "Enhanced Second-Chance Page Replacement Algorithm มีหลักการเลือก Page ในที่จะถูกแทนที่อย่างไร จงอธิบาย",
-    subtitle:
-      "[Explain how the Enhanced Second-Chance Page Replacement Algorithm selects a page to be replaced.]",
+    title: "Enhanced Second-Chance Page Replacement Algorithm ทำงานอย่างไร",
+    subtitle: "[Explain how the Enhanced Second-Chance algorithm works]",
     placeholder: "พิมพ์คำตอบ/แนวคิดของคุณที่นี่...",
+    answers: {
+      th: `ดู 2 บิตของแต่ละ page:
+R = Reference (เพิ่งถูกใช้ไหม)
+M = Modify/Dirty (มีการแก้ไขไหม)
+
+ลำดับเลือกออก (ดีที่สุดก่อน):
+(0,0) ไม่ถูกใช้ + ไม่ dirty → เอาออกก่อน
+(0,1) ไม่ถูกใช้ + dirty → เอาออกได้แต่ต้องเขียนกลับดิสก์
+(1,0) เพิ่งถูกใช้ → ให้โอกาส (second chance)
+(1,1) เพิ่งถูกใช้ + dirty → ให้โอกาสและแพงสุด`,
+      en: `Uses two bits:
+R = referenced recently?
+M = modified (dirty)?
+
+Preferred victim order:
+(0,0) not referenced, clean → best to evict
+(0,1) not referenced, dirty → evict but write back
+(1,0) referenced → give second chance
+(1,1) referenced & dirty → worst to evict`,
+    },
   },
 ];
 
 // ========================
-// 4) UI strings (TH/EN) - for MCQ only
+// 4) UI strings (TH/EN)
 // ========================
 const UI_STR = {
   th: {
@@ -404,6 +460,9 @@ const UI_STR = {
     explain: (x) => `อธิบาย: ${x || "-"}`,
     qPrefix: (i) => `ข้อ ${i}: `,
     correctAns: "คำตอบที่ถูกต้อง:",
+    shortTitle: "ส่วนที่ 2: ข้อเขียน (ไม่ตรวจคะแนน)",
+    showGuide: "👁 ดูแนวคำตอบ",
+    hideGuide: "🙈 ซ่อนแนวคำตอบ",
   },
   en: {
     practice: "Practice mode (instant feedback)",
@@ -415,6 +474,9 @@ const UI_STR = {
     explain: (x) => `Explanation: ${x || "-"}`,
     qPrefix: (i) => `Q${i}: `,
     correctAns: "Correct answer:",
+    shortTitle: "Section 2: Short Answer (not graded)",
+    showGuide: "👁 Show guideline answer",
+    hideGuide: "🙈 Hide guideline answer",
   },
 };
 
@@ -476,13 +538,20 @@ function shuffle(arr) {
 
 function ensureChoiceOrder(id) {
   if (choiceOrder.has(id)) return;
+
   const base = EN_MAP.get(id);
   const keys = ["A", "B", "C", "D"].filter((k) => base && base.choices[k] != null);
-  choiceOrder.set(id, shuffle(keys)); // shuffle once per run
+
+  // shuffle keys once per run
+  choiceOrder.set(id, shuffle(keys));
 }
 
 function allAnswered() {
   return shuffledIds.every((id) => answers.has(id));
+}
+
+function clearShortGuides() {
+  // if re-render, any open guide resets (simple approach)
 }
 
 // ========================
@@ -499,12 +568,12 @@ function render() {
   if (submitBtn) submitBtn.textContent = t("submit");
   if (practiceToggle) practiceToggle.checked = practiceMode;
 
-  // shuffle MCQ order only once per run
+  // shuffle question order only once per run
   if (shuffledIds.length === 0) {
     shuffledIds = shuffle(EN_Q.map((q) => q.id));
   }
 
-  // --------- MCQ ---------
+  // ---------- Multiple Choice ----------
   shuffledIds.forEach((id, idx) => {
     const q = getQ(lang, id);
     ensureChoiceOrder(id);
@@ -536,7 +605,7 @@ function render() {
       if (lockedAll || (practiceMode && lockedQ.has(id))) input.disabled = true;
 
       const span = document.createElement("span");
-      // hide A/B/C/D; show only text
+      // ✅ show only text (no A/B/C/D)
       span.textContent = q.choices[key];
 
       opt.appendChild(input);
@@ -546,19 +615,21 @@ function render() {
 
     card.appendChild(opts);
 
-    // Re-apply result UI when re-render
-    if ((practiceMode && lockedQ.has(id)) || lockedAll) {
+    // If this question already locked in practice mode, re-apply result UI
+    if (practiceMode && lockedQ.has(id)) {
       applyResultToCard(card, q, answers.get(id));
     }
 
     quizEl.appendChild(card);
   });
 
-  // --------- Short Answer (no scoring) ---------
-  const secTitle = document.createElement("h2");
-  secTitle.className = "short-section-title";
-  secTitle.textContent = "Section 2: Short Answer (ไม่ตรวจคะแนน)";
-  quizEl.appendChild(secTitle);
+  markChosenUI();
+
+  // ---------- Short Answer Section ----------
+  const shortTitle = document.createElement("h2");
+  shortTitle.className = "short-section-title";
+  shortTitle.textContent = t("shortTitle");
+  quizEl.appendChild(shortTitle);
 
   SHORT_Q.forEach((sq, i) => {
     const wrap = document.createElement("div");
@@ -567,14 +638,14 @@ function render() {
 
     const t1 = document.createElement("p");
     t1.className = "qtitle";
-    t1.textContent = `ข้อ ${i + 1}: ${sq.title}\n${sq.subtitle || ""}`.trim();
+    t1.textContent = `ข้อ ${i + 1}: ${sq.title}\n${sq.subtitle || ""}`;
     wrap.appendChild(t1);
 
     if (sq.img) {
       const box = document.createElement("div");
       box.className = "short-img";
       const img = document.createElement("img");
-      img.src = sq.img; // e.g. kernel.png (same folder)
+      img.src = sq.img;
       img.alt = "diagram";
       box.appendChild(img);
       wrap.appendChild(box);
@@ -583,13 +654,33 @@ function render() {
     const ta = document.createElement("textarea");
     ta.className = "short-answer";
     ta.placeholder = sq.placeholder || "";
-    // ไม่ต้องล็อก / ไม่ต้องตรวจคะแนน
     wrap.appendChild(ta);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn secondary";
+    btn.style.marginTop = "10px";
+    btn.textContent = t("showGuide");
+
+    const ansBox = document.createElement("div");
+    ansBox.className = "explain";
+    ansBox.style.display = "none";
+    ansBox.style.whiteSpace = "pre-line";
+    ansBox.textContent = (sq.answers && sq.answers[lang]) ? sq.answers[lang] : "";
+
+    btn.addEventListener("click", () => {
+      const isHidden = ansBox.style.display === "none";
+      ansBox.style.display = isHidden ? "block" : "none";
+      btn.textContent = isHidden ? t("hideGuide") : t("showGuide");
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(ansBox);
 
     quizEl.appendChild(wrap);
   });
 
-  markChosenUI();
+  clearShortGuides();
 }
 
 function markChosenUI() {
@@ -602,22 +693,15 @@ function markChosenUI() {
   });
 }
 
-// show explanation on BOTH correct & wrong + highlight correct option in green
+// show explanation BOTH correct & wrong
 function applyResultToCard(card, q, chosen) {
   card.classList.remove("correct", "wrong");
   card.querySelectorAll(".explain").forEach((e) => e.remove());
 
   // dim non-chosen
   card.querySelectorAll(".option").forEach((opt) => {
-    const key = opt.dataset.key;
-    const isChosen = key === chosen;
-    opt.classList.toggle("dim", chosen ? !isChosen : false);
-  });
-
-  // highlight correct option (always) in green outline
-  card.querySelectorAll(".option").forEach((opt) => {
-    opt.classList.remove("correctChoice");
-    if (opt.dataset.key === q.answer) opt.classList.add("correctChoice");
+    const isChosen = opt.dataset.key === chosen;
+    opt.classList.toggle("dim", !isChosen);
   });
 
   const exp = document.createElement("div");
@@ -630,10 +714,21 @@ function applyResultToCard(card, q, chosen) {
     card.classList.add("wrong");
     const correctText = q.choices[q.answer];
     exp.innerHTML =
-      `<strong>${t("correctAns")}</strong> ${correctText}<br>` +
-      `${t("explain", q.explanation)}`;
+      `<strong>${t("correctAns")}</strong> ${escapeHtml(correctText)}<br>` +
+      `${escapeHtml(t("explain", q.explanation))}`;
+    // NOTE: exp uses innerHTML, so escape!
   }
+
   card.appendChild(exp);
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 // ========================
@@ -652,6 +747,7 @@ quizEl.addEventListener("change", (e) => {
   answers.set(id, chosen);
   markChosenUI();
 
+  // Practice mode: instant feedback + lock question
   if (practiceMode) {
     const q = getQ(lang, id);
     const card = document.querySelector(`.qcard[data-qid="${id}"]`);
@@ -694,11 +790,15 @@ submitBtn.addEventListener("click", () => {
 });
 
 restartBtn.addEventListener("click", () => {
+  // reshuffle ONLY on restart
   shuffledIds = [];
   answers.clear();
   lockedQ.clear();
   lockedAll = false;
-  choiceOrder.clear(); // reshuffle choices on restart only
+
+  // choices reshuffle only on restart
+  choiceOrder.clear();
+
   render();
 });
 
