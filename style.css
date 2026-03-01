@@ -142,6 +142,71 @@ h2{margin:0 0 12px 0;font-size:18px}
 }
 .summary b{font-size:16px}
 
+/* =========================
+   Short Answer (3 extra questions)
+   ========================= */
+.short-section-title{
+  margin-top:18px;
+  font-size:18px;
+}
+
+.short-q{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  margin:14px 0;
+  background:#fff;
+}
+
+.short-q .qtitle{
+  margin:0 0 10px 0;
+  font-weight:700;
+  white-space:pre-line;
+}
+
+.short-answer{
+  width:100%;
+  min-height:120px;
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  font-family:inherit;
+  font-size:14px;
+  resize:vertical;
+  outline:none;
+  background:#fff;
+}
+
+.short-answer::placeholder{
+  color:#94a3b8;
+}
+
+.short-answer:focus{
+  border-color:#93c5fd;
+  box-shadow:0 0 0 3px rgba(37,99,235,.15);
+}
+
+/* optional: hint text under question */
+.short-hint{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+/* optional: image in short-answer question */
+.short-img{
+  margin:10px 0 12px 0;
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  background:#fff;
+}
+.short-img img{
+  width:100%;
+  height:auto;
+  display:block;
+}
+
 /* Mobile tweaks */
 @media (max-width: 560px){
   .container{padding:16px}
