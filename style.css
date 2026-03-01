@@ -77,7 +77,11 @@ h2{margin:0 0 12px 0;font-size:18px}
   background:#fff;
   transition:.2s;
 }
-.qtitle{font-weight:700;margin:0 0 10px 0}
+.qtitle{
+  font-weight:700;
+  margin:0 0 10px 0;
+  white-space: pre-line;
+}
 .options{display:grid;gap:10px}
 .option{
   display:flex;
