@@ -408,16 +408,40 @@ const SHORT_Q = [
     subtitle: "[How does page size affect fragmentation?]",
     placeholder: "พิมพ์คำตอบ/แนวคิดของคุณที่นี่...",
     answers: {
-      th: `Page ใหญ่ → internal fragmentation สูง (ท้ายก้อนเหลือมาก เสียพื้นที่)
-แต่ข้อดี: page table เล็ก/จัดการง่ายขึ้น
+      th: `Page คือหน่วยย่อยของหน่วยความจำ
 
-Page เล็ก → internal fragmentation น้อยลง
-แต่ข้อเสีย: ต้องมี page มากขึ้น → page table ใหญ่/จัดการซับซ้อนขึ้น`,
-      en: `Large pages → higher internal fragmentation (more wasted space inside a page),
-but smaller page tables / less management overhead.
+ถ้า Page ใหญ่
+→ จะเหลือพื้นที่ว่างในแต่ละก้อนมาก
+→ ทำให้เสียพื้นที่ (เรียกว่าเปลืองพื้นที่)
 
-Small pages → less internal fragmentation,
-but more pages → larger page tables / more overhead.`,
+แต่ข้อดีคือ
+→ จัดการง่าย ตารางเล็ก
+
+ถ้า Page เล็ก
+→ เสียพื้นที่น้อยกว่า
+แต่
+→ ต้องจัดการหลายก้อนมากขึ้น ทำให้ซับซ้อนขึ้น
+
+สรุปง่าย ๆ :
+ใหญ่ = เปลืองพื้นที่
+เล็ก = จัดการยุ่งขึ้น`,
+      en: `Page คือหน่วยย่อยของหน่วยความจำ
+
+ถ้า Page ใหญ่
+→ จะเหลือพื้นที่ว่างในแต่ละก้อนมาก
+→ ทำให้เสียพื้นที่ (เรียกว่าเปลืองพื้นที่)
+
+แต่ข้อดีคือ
+→ จัดการง่าย ตารางเล็ก
+
+ถ้า Page เล็ก
+→ เสียพื้นที่น้อยกว่า
+แต่
+→ ต้องจัดการหลายก้อนมากขึ้น ทำให้ซับซ้อนขึ้น
+
+สรุปง่าย ๆ :
+ใหญ่ = เปลืองพื้นที่
+เล็ก = จัดการยุ่งขึ้น`,
     },
   },
   {
@@ -426,24 +450,34 @@ but more pages → larger page tables / more overhead.`,
     subtitle: "[Explain how the Enhanced Second-Chance algorithm works]",
     placeholder: "พิมพ์คำตอบ/แนวคิดของคุณที่นี่...",
     answers: {
-      th: `ดู 2 บิตของแต่ละ page:
-R = Reference (เพิ่งถูกใช้ไหม)
-M = Modify/Dirty (มีการแก้ไขไหม)
+      th: `ระบบจะดู 2 อย่าง
 
-ลำดับเลือกออก (ดีที่สุดก่อน):
-(0,0) ไม่ถูกใช้ + ไม่ dirty → เอาออกก่อน
-(0,1) ไม่ถูกใช้ + dirty → เอาออกได้แต่ต้องเขียนกลับดิสก์
-(1,0) เพิ่งถูกใช้ → ให้โอกาส (second chance)
-(1,1) เพิ่งถูกใช้ + dirty → ให้โอกาสและแพงสุด`,
-      en: `Uses two bits:
-R = referenced recently?
-M = modified (dirty)?
+1.เพิ่งถูกใช้ไหม
 
-Preferred victim order:
-(0,0) not referenced, clean → best to evict
-(0,1) not referenced, dirty → evict but write back
-(1,0) referenced → give second chance
-(1,1) referenced & dirty → worst to evict`,
+2.มีการแก้ไขข้อมูลไหม
+
+ระบบจะเลือกเอา page ที่
+ไม่ค่อยได้ใช้ และ ไม่ได้แก้ไข ออกก่อน
+
+ถ้า page เพิ่งถูกใช้
+จะให้โอกาสก่อน (ยังไม่ลบทิ้งทันที)
+
+สรุปง่าย ๆ :
+เลือกเอาตัวที่ “ไม่ค่อยใช้” ออกก่อน เพื่อให้กระทบน้อยที่สุด`,
+      en: `ระบบจะดู 2 อย่าง
+
+1.เพิ่งถูกใช้ไหม
+
+2.มีการแก้ไขข้อมูลไหม
+
+ระบบจะเลือกเอา page ที่
+ไม่ค่อยได้ใช้ และ ไม่ได้แก้ไข ออกก่อน
+
+ถ้า page เพิ่งถูกใช้
+จะให้โอกาสก่อน (ยังไม่ลบทิ้งทันที)
+
+สรุปง่าย ๆ :
+เลือกเอาตัวที่ “ไม่ค่อยใช้” ออกก่อน เพื่อให้กระทบน้อยที่สุด`,
     },
   },
 ];
