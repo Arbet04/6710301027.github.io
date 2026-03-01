@@ -1,5 +1,5 @@
 // ========================
-// 1) Questions (EN) - original
+// 1) Questions (EN)
 // ========================
 const EN_Q = [
   {
@@ -178,7 +178,7 @@ const EN_Q = [
 ];
 
 // ========================
-// 2) Questions (TH) - translated 20/20
+// 2) Questions (TH)
 // ========================
 const TH_Q = [
   {
@@ -372,9 +372,9 @@ const UI_STR = {
     needAll: "กรุณาตอบให้ครบทุกข้อก่อนกด Submit",
     score: (s, n) => `คะแนนของคุณ: ${s} / ${n}`,
     retry: "กด “เริ่มใหม่” เพื่อทำใหม่",
-    explain: (x) => `อธิบาย: ${x || "-"}`,
-    qPrefix: (i) => `ข้อ ${i}: `,
+    explainLabel: "อธิบาย:",
     correctAns: "คำตอบที่ถูกต้อง:",
+    qPrefix: (i) => `ข้อ ${i}: `,
   },
   en: {
     practice: "Practice mode (instant feedback)",
@@ -383,9 +383,9 @@ const UI_STR = {
     needAll: "Please answer every question before submitting.",
     score: (s, n) => `Your score: ${s} / ${n}`,
     retry: "Click “Restart” to try again",
-    explain: (x) => `Explanation: ${x || "-"}`,
-    qPrefix: (i) => `Q${i}: `,
+    explainLabel: "Explanation:",
     correctAns: "Correct answer:",
+    qPrefix: (i) => `Q${i}: `,
   },
 };
 
@@ -408,7 +408,7 @@ function getQ(currentLang, id) {
 // ========================
 // 5) State
 // ========================
-let lang = "en"; // EN default
+let lang = "en"; // default
 let practiceMode = false;
 
 let shuffledIds = []; // shuffle question order only once per run
@@ -417,7 +417,7 @@ let lockedQ = new Set(); // locked per question in practice mode
 let lockedAll = false; // after submit
 
 // store choices order per question (persist across language toggle)
-let choiceOrder = new Map(); // id -> ["C","A","D","B"]
+let choiceOrder = new Map(); // id -> ["C","A","D","B"] etc. (keys only)
 
 // ========================
 // 6) Elements
@@ -451,7 +451,8 @@ function ensureChoiceOrder(id) {
   const base = EN_MAP.get(id);
   const keys = ["A", "B", "C", "D"].filter((k) => base && base.choices[k] != null);
 
-  choiceOrder.set(id, shuffle(keys)); // shuffle once per run
+  // shuffle keys once per run
+  choiceOrder.set(id, shuffle(keys));
 }
 
 function allAnswered() {
@@ -494,7 +495,6 @@ function render() {
     opts.className = "options";
 
     const keys = choiceOrder.get(id);
-
     keys.forEach((key) => {
       const opt = document.createElement("label");
       opt.className = "option";
@@ -509,7 +509,8 @@ function render() {
       if (lockedAll || (practiceMode && lockedQ.has(id))) input.disabled = true;
 
       const span = document.createElement("span");
-      span.textContent = q.choices[key]; // no A/B/C/D shown
+      // Do NOT show A/B/C/D in UI
+      span.textContent = q.choices[key];
 
       opt.appendChild(input);
       opt.appendChild(span);
@@ -518,6 +519,7 @@ function render() {
 
     card.appendChild(opts);
 
+    // If already locked in practice mode, re-apply result UI
     if (practiceMode && lockedQ.has(id)) {
       applyResultToCard(card, q, answers.get(id));
     }
@@ -538,26 +540,50 @@ function markChosenUI() {
   });
 }
 
-// ✅ show explanation BOTH correct & wrong
+// ✅ FIX: show explanation for BOTH correct & wrong (practice + submit)
 function applyResultToCard(card, q, chosen) {
   card.classList.remove("correct", "wrong");
   card.querySelectorAll(".explain").forEach((e) => e.remove());
 
+  // dim non-chosen
   card.querySelectorAll(".option").forEach((opt) => {
     const isChosen = opt.dataset.key === chosen;
     opt.classList.toggle("dim", !isChosen);
   });
 
+  const exp = document.createElement("div");
+  exp.className = "explain";
+
+  const correctText = q.choices[q.answer] ?? "";
+  const explanationText = q.explanation ?? "-";
+
   if (chosen === q.answer) {
     card.classList.add("correct");
-    const exp = document.createElement("div");
-    exp.className = "explain";
-    exp.textContent = t("explain", q.explanation);
-    card.appendChild(exp);
+    exp.textContent = `${t("explainLabel")} ${explanationText}`;
   } else {
     card.classList.add("wrong");
-    // ❌ You forgot to append explanation here (fix below)
+
+    // Build explanation block safely (no HTML injection)
+    const line1 = document.createElement("div");
+    line1.innerHTML = `<strong>${t("correctAns")}</strong> ${escapeHtml(correctText)}`;
+
+    const line2 = document.createElement("div");
+    line2.textContent = `${t("explainLabel")} ${explanationText}`;
+
+    exp.appendChild(line1);
+    exp.appendChild(line2);
   }
+
+  card.appendChild(exp);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 // ========================
@@ -576,6 +602,7 @@ quizEl.addEventListener("change", (e) => {
   answers.set(id, chosen);
   markChosenUI();
 
+  // Practice mode: instant feedback + lock question
   if (practiceMode) {
     const q = getQ(lang, id);
     const card = document.querySelector(`.qcard[data-qid="${id}"]`);
@@ -618,18 +645,23 @@ submitBtn.addEventListener("click", () => {
 });
 
 restartBtn.addEventListener("click", () => {
+  // reshuffle ONLY on restart
   shuffledIds = [];
   answers.clear();
   lockedQ.clear();
   lockedAll = false;
-  choiceOrder.clear(); // reshuffle choices only on restart
+
+  // reshuffle choice order only on restart
+  choiceOrder.clear();
+
   render();
 });
 
 if (langBtn) {
   langBtn.addEventListener("click", () => {
+    // toggle language: DO NOT reshuffle question/choices
     lang = lang === "th" ? "en" : "th";
-    render(); // no reshuffle
+    render();
   });
 }
 
