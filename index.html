@@ -18,8 +18,19 @@
     <section class="card">
       <div class="row">
         <h2>ส่วนที่ 1: ปรนัย (Multiple Choice)</h2>
-        <button id="restartBtn" class="btn secondary" type="button">เริ่มใหม่</button>
+
+        <!-- Controls: Practice + Language + Restart -->
+        <div class="controls">
+          <label class="toggle">
+            <input id="practiceToggle" type="checkbox" />
+            <span id="practiceLabel">โหมดฝึก (ตอบแล้วรู้ผล)</span>
+          </label>
+
+          <button id="langBtn" class="btn secondary" type="button">EN</button>
+          <button id="restartBtn" class="btn secondary" type="button">เริ่มใหม่</button>
+        </div>
       </div>
+
       <div id="quiz"></div>
 
       <div class="actions">
