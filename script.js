@@ -168,8 +168,8 @@ const EN_Q = [
   {
     id: 20,
     text:
-      "For 3 page frames, the following is the reference string:\n" +
-      "7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1\n\n" +
+      "For 3 page frames, the following is the reference string:\n" 
+      "7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1\n\n" 
       "How many page faults does the LRU page replacement algorithm produce?",
     choices: { A: "15", B: "12", C: "11", D: "10" },
     answer: "B",
@@ -352,8 +352,8 @@ const TH_Q = [
   {
     id: 20,
     text:
-      "สำหรับ page frame 3 ช่อง มี reference string:\n" +
-      "7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1\n\n" +
+      "สำหรับ page frame 3 ช่อง มี reference string:\n" 
+      "7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1\n\n" 
       "อัลกอริทึม LRU จะเกิด page fault กี่ครั้ง",
     choices: { A: "15", B: "12", C: "11", D: "10" },
     answer: "B",
