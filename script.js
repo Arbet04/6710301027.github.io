@@ -186,7 +186,7 @@ const TH_Q = [
     text: "หน่วยความจำหลัก (Main memory) ใช้เก็บ/รองรับ __________",
     choices: { A: "ทั้งหมดที่กล่าวมา", B: "CPU", C: "ระบบปฏิบัติการ", D: "โปรเซสของผู้ใช้" },
     answer: "C",
-    explanation: "แนวข้อสอบนี้มักเน้นว่า Main memory รองรับ OS และโปรแกรมที่กำลังทำงานอยู่",
+    explanation: "โดยแนวข้อสอบนี้มักเน้นว่า Main memory รองรับ OS และโปรแกรมที่กำลังทำงานอยู่",
   },
   {
     id: 2,
@@ -374,6 +374,7 @@ const UI_STR = {
     retry: "กด “เริ่มใหม่” เพื่อทำใหม่",
     explain: (x) => `อธิบาย: ${x || "-"}`,
     qPrefix: (i) => `ข้อ ${i}: `,
+    correctAns: "คำตอบที่ถูกต้อง:",
   },
   en: {
     practice: "Practice mode (instant feedback)",
@@ -384,9 +385,13 @@ const UI_STR = {
     retry: "Click “Restart” to try again",
     explain: (x) => `Explanation: ${x || "-"}`,
     qPrefix: (i) => `Q${i}: `,
+    correctAns: "Correct answer:",
   },
 };
 
+// ========================
+// 4) Maps
+// ========================
 function toMap(arr) {
   const m = new Map();
   arr.forEach((q) => m.set(q.id, q));
@@ -401,21 +406,23 @@ function getQ(currentLang, id) {
 }
 
 // ========================
-// 4) State
+// 5) State
 // ========================
-let lang = "en"; // EN default
+
+// ✅ EN is the default language
+let lang = "en";
 let practiceMode = false;
 
 let shuffledIds = []; // shuffle question order only once per run
-let answers = new Map(); // id -> chosenKey (A/B/C/D internal)
-let lockedQ = new Set(); // locked in practice mode
+let answers = new Map(); // id -> chosenKey (A/B/C/D)
+let lockedQ = new Set(); // locked per question in practice mode
 let lockedAll = false; // after submit
 
 // ✅ store choices order per question (persist across language toggle)
 let choiceOrder = new Map(); // id -> ["C","A","D","B"] etc. (keys only)
 
 // ========================
-// 5) Elements
+// 6) Elements
 // ========================
 const quizEl = document.getElementById("quiz");
 const submitBtn = document.getElementById("submitBtn");
@@ -426,12 +433,13 @@ const practiceToggle = document.getElementById("practiceToggle");
 const practiceLabel = document.getElementById("practiceLabel");
 
 // ========================
-// 6) Helpers
+// 7) Helpers
 // ========================
 function t(key, ...args) {
   const v = UI_STR[lang][key];
   return typeof v === "function" ? v(...args) : v;
 }
+
 function shuffle(arr) {
   return arr
     .map((v) => ({ v, r: Math.random() }))
@@ -440,19 +448,21 @@ function shuffle(arr) {
 }
 
 function ensureChoiceOrder(id) {
-  // create once per run (not on language toggle)
   if (choiceOrder.has(id)) return;
 
-  // Use EN as base keys A/B/C/D (same keys exist in TH)
   const base = EN_MAP.get(id);
   const keys = ["A", "B", "C", "D"].filter((k) => base && base.choices[k] != null);
 
-  // shuffle keys once
+  // shuffle keys once per run
   choiceOrder.set(id, shuffle(keys));
 }
 
+function allAnswered() {
+  return shuffledIds.every((id) => answers.has(id));
+}
+
 // ========================
-// 7) Render
+// 8) Render
 // ========================
 function render() {
   quizEl.innerHTML = "";
@@ -486,7 +496,8 @@ function render() {
     const opts = document.createElement("div");
     opts.className = "options";
 
-    const keys = choiceOrder.get(id); // stable order across language toggle
+    const keys = choiceOrder.get(id);
+
     keys.forEach((key) => {
       const opt = document.createElement("label");
       opt.className = "option";
@@ -495,13 +506,13 @@ function render() {
       const input = document.createElement("input");
       input.type = "radio";
       input.name = `q_${id}`;
-      input.value = key; // keep internal key A/B/C/D
+      input.value = key;
 
       if (answers.get(id) === key) input.checked = true;
       if (lockedAll || (practiceMode && lockedQ.has(id))) input.disabled = true;
 
       const span = document.createElement("span");
-      // ✅ remove "A. B. C. D." from UI
+      // ✅ Do NOT show "A/B/C/D." — show only text
       span.textContent = q.choices[key];
 
       opt.appendChild(input);
@@ -511,6 +522,7 @@ function render() {
 
     card.appendChild(opts);
 
+    // If this question already locked in practice mode, re-apply result UI
     if (practiceMode && lockedQ.has(id)) {
       applyResultToCard(card, q, answers.get(id));
     }
@@ -531,32 +543,36 @@ function markChosenUI() {
   });
 }
 
+// ✅ show explanation BOTH correct & wrong
 function applyResultToCard(card, q, chosen) {
   card.classList.remove("correct", "wrong");
   card.querySelectorAll(".explain").forEach((e) => e.remove());
 
+  // dim non-chosen
   card.querySelectorAll(".option").forEach((opt) => {
     const isChosen = opt.dataset.key === chosen;
     opt.classList.toggle("dim", !isChosen);
   });
 
+  const exp = document.createElement("div");
+  exp.className = "explain";
+
   if (chosen === q.answer) {
     card.classList.add("correct");
-    const exp = document.createElement("div");
-    exp.className = "explain";
     exp.textContent = t("explain", q.explanation);
-    card.appendChild(exp);
   } else {
     card.classList.add("wrong");
+    const correctText = q.choices[q.answer];
+    exp.innerHTML =
+      `<strong>${t("correctAns")}</strong> ${correctText}<br>` +
+      `${t("explain", q.explanation)}`;
   }
-}
 
-function allAnswered() {
-  return shuffledIds.every((id) => answers.has(id));
+  card.appendChild(exp);
 }
 
 // ========================
-// 8) Events
+// 9) Events
 // ========================
 quizEl.addEventListener("change", (e) => {
   if (!(e.target instanceof HTMLInputElement)) return;
@@ -571,6 +587,7 @@ quizEl.addEventListener("change", (e) => {
   answers.set(id, chosen);
   markChosenUI();
 
+  // Practice mode: instant feedback + lock question
   if (practiceMode) {
     const q = getQ(lang, id);
     const card = document.querySelector(`.qcard[data-qid="${id}"]`);
@@ -619,7 +636,7 @@ restartBtn.addEventListener("click", () => {
   lockedQ.clear();
   lockedAll = false;
 
-  // choices reshuffle only on restart
+  // ✅ choices reshuffle only on restart
   choiceOrder.clear();
 
   render();
