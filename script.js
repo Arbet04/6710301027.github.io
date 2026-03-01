@@ -1,202 +1,206 @@
 const QUESTIONS = [
-  {
-    id: 1,
-    text: "The main memory accommodates __________",
-    choices: {
-      A: "all of the mentioned",
-      B: "cpu",
-      C: "operating system",
-      D: "user processes",
-    },
-    answer: "C",
-    explanation: "Main memory (ตามชุดข้อสอบแนวนี้) เน้นว่าใช้รองรับ OS เป็นหลัก",
+  { id: 1, text: "The main memory accommodates __________",
+    choices:{A:"all of the mentioned",B:"cpu",C:"operating system",D:"user processes"},
+    answer:"C", explanation:"Main memory (แนวข้อสอบนี้) รองรับ OS และโปรแกรมต่าง ๆ โดยเฉพาะ OS"
   },
-  {
-    id: 2,
-    text: "The instruction being executed, must be in __________",
-    choices: {
-      A: "physical memory",
-      B: "logical memory",
-      C: "none of the mentioned",
-      D: "physical & logical memory",
-    },
-    answer: "A",
-    explanation: "คำสั่งที่ CPU execute ต้องอยู่ในหน่วยความจำจริง (RAM) ก่อน",
+  { id: 2, text: "The instruction being executed, must be in __________",
+    choices:{A:"physical memory",B:"logical memory",C:"none of the mentioned",D:"physical & logical memory"},
+    answer:"A", explanation:"คำสั่งที่ CPU execute ต้องอยู่ใน RAM (physical memory) ก่อน"
   },
-  {
-    id: 3,
-    text: "By using the specific system call, we can __________",
-    choices: {
-      A: "open the file",
-      B: "read the file",
-      C: "all of the mentioned",
-      D: "write into the file",
-    },
-    answer: "C",
-    explanation: "System call ทำได้ทั้ง open/read/write",
+  { id: 3, text: "By using the specific system call, we can __________",
+    choices:{A:"open the file",B:"read the file",C:"all of the mentioned",D:"write into the file"},
+    answer:"C", explanation:"System call ใช้ open/read/write ได้"
   },
-  {
-    id: 4,
-    text: "The relocation register helps in __________",
-    choices: {
-      A: "none of the mentioned",
-      B: "to protect the address spaces of processes",
-      C: "a different address space to processes",
-      D: "providing more address space to processes",
-    },
-    answer: "B",
-    explanation: "ช่วยป้องกัน/จำกัดการเข้าถึง address space ของโปรเซส",
+  { id: 4, text: "The relocation register helps in __________",
+    choices:{A:"none of the mentioned",B:"to protect the address spaces of processes",C:"a different address space to processes",D:"providing more address space to processes"},
+    answer:"B", explanation:"ช่วยป้องกัน/จำกัดการเข้าถึง address space ของโปรเซส"
   },
-  {
-    id: 5,
-    text: "What will happens when a process closes the file?",
-    choices: {
-      A: "all of the mentioned",
-      B: "none of the mentioned",
-      C: "per-process table entry is not removed",
-      D: "system wide entry’s open count is decremented",
-    },
-    answer: "D",
-    explanation: "ปิดไฟล์แล้ว open count ใน system-wide table จะลดลง",
+  { id: 5, text: "What will happens when a process closes the file?",
+    choices:{A:"all of the mentioned",B:"none of the mentioned",C:"per-process table entry is not removed",D:"system wide entry’s open count is decremented"},
+    answer:"D", explanation:"ปิดไฟล์แล้ว open count ใน system-wide table ลดลง"
   },
-  {
-    id: 6,
-    text: "The technique of duplicating every disk is known as __________",
-    choices: {
-      A: "shadowing",
-      B: "all of the mentioned",
-      C: "mirroring",
-      D: "redundancy",
-    },
-    answer: "C",
-    explanation: "การทำสำเนาดิสก์ทั้งลูก = mirroring",
+  { id: 6, text: "The technique of duplicating every disk is known as __________",
+    choices:{A:"shadowing",B:"all of the mentioned",C:"mirroring",D:"redundancy"},
+    answer:"C", explanation:"ทำสำเนาดิสก์ทั้งลูก = mirroring"
   },
-  {
-    id: 7,
-    text: "Program always deals with __________",
-    choices: {
-      A: "physical address",
-      B: "relative address",
-      C: "absolute address",
-      D: "logical address",
-    },
-    answer: "D",
-    explanation: "โปรแกรมมองเป็น logical/virtual address (ค่อยแปลงเป็น physical ทีหลัง)",
+  { id: 7, text: "Program always deals with __________",
+    choices:{A:"physical address",B:"relative address",C:"absolute address",D:"logical address"},
+    answer:"D", explanation:"โปรแกรมใช้ logical/virtual address แล้วค่อยแปลงเป็น physical"
   },
-  {
-    id: 8,
-    text: "RAID level ____ spreads parity and data among all N+1 disks rather than storing data in N disks and parity in 1.",
-    choices: { A: "3", B: "5", C: "6", D: "4" },
-    answer: "B",
-    explanation: "RAID 5 กระจาย parity ไปทุกดิสก์",
+  { id: 8, text: "RAID level ____ spreads parity and data among all N+1 disks rather than storing data in N disks and parity in 1.",
+    choices:{A:"3",B:"5",C:"6",D:"4"},
+    answer:"B", explanation:"RAID 5 กระจาย parity ไปทุกดิสก์"
   },
-  {
-    id: 9,
-    text: "When memory is divided into several fixed sized partitions, each partition may contain __________",
-    choices: {
-      A: "multiple processes at once",
-      B: "at least one process",
-      C: "none of the mentioned",
-      D: "exactly one process",
-    },
-    answer: "D",
-    explanation: "Fixed partition แบบคลาสสิก: 1 partition ต่อ 1 process",
+  { id: 9, text: "When memory is divided into several fixed sized partitions, each partition may contain __________",
+    choices:{A:"multiple processes at once",B:"at least one process",C:"none of the mentioned",D:"exactly one process"},
+    answer:"D", explanation:"Fixed partition แบบคลาสสิก: 1 partition ต่อ 1 process"
   },
-  {
-    id: 10,
-    text: "Which one of the following explains the sequential file access method?",
-    choices: {
-      A: "random access according to the given byte number",
-      B: "read/write sequentially by record",
-      C: "read bytes one at a time, in order",
-      D: "read/write randomly by record",
-    },
-    answer: "C",
-    explanation: "Sequential access คืออ่านไปตามลำดับจากต้นไปท้าย",
+  { id: 10, text: "Which one of the following explains the sequential file access method?",
+    choices:{A:"random access according to the given byte number",B:"read/write sequentially by record",C:"read bytes one at a time, in order",D:"read/write randomly by record"},
+    answer:"C", explanation:"Sequential access คืออ่านไปตามลำดับ"
   },
-  {
-    id: 11,
-    text: "The percentage of times a page number is found in the TLB is known as __________",
-    choices: {
-      A: "hit ratio",
-      B: "miss ratio",
-      C: "none of the mentioned",
-      D: "miss percent",
-    },
-    answer: "A",
-    explanation: "เจอใน TLB = hit → สัดส่วนเรียก hit ratio",
+  { id: 11, text: "The percentage of times a page number is found in the TLB is known as __________",
+    choices:{A:"hit ratio",B:"miss ratio",C:"none of the mentioned",D:"miss percent"},
+    answer:"A", explanation:"เจอใน TLB = hit → hit ratio"
   },
-  {
-    id: 12,
-    text: "File attributes consist of __________",
-    choices: { A: "identifier", B: "all of the mentioned", C: "name", D: "type" },
-    answer: "B",
-    explanation: "attributes มีได้หลายอย่าง เช่น name/type/identifier ฯลฯ",
+  { id: 12, text: "File attributes consist of __________",
+    choices:{A:"identifier",B:"all of the mentioned",C:"name",D:"type"},
+    answer:"B", explanation:"attributes มีหลายอย่าง เช่น name/type/identifier"
   },
-  {
-    id: 13,
-    text: "Operating System maintains the page table for __________",
-    choices: { A: "each instruction", B: "each thread", C: "each process", D: "each address" },
-    answer: "C",
-    explanation: "โดยทั่วไป page table ผูกกับ process (address space ของ process)",
+  { id: 13, text: "Operating System maintains the page table for __________",
+    choices:{A:"each instruction",B:"each thread",C:"each process",D:"each address"},
+    answer:"C", explanation:"page table ผูกกับ process (address space)"
   },
-  {
-    id: 14,
-    text: "For large files, when the index itself becomes too large to be kept in memory?",
-    choices: {
-      A: "index is called",
-      B: "all of the mentioned",
-      C: "an index is created for the index file",
-      D: "secondary index files are created",
-    },
-    answer: "C",
-    explanation: "แนวคิดคือทำ index ซ้อน index (multi-level index)",
+  { id: 14, text: "For large files, when the index itself becomes too large to be kept in memory?",
+    choices:{A:"index is called",B:"all of the mentioned",C:"an index is created for the index file",D:"secondary index files are created"},
+    answer:"C", explanation:"ทำ index ซ้อน index (multi-level index)"
   },
-  {
-    id: 15,
-    text: "Paging increases the _____ time.",
-    choices: { A: "execution", B: "all of the mentioned", C: "context–switch", D: "waiting" },
-    answer: "C",
-    explanation: "มี overhead เพิ่มเกี่ยวกับการสลับบริบท/การจัดการหน่วยความจำ",
+  { id: 15, text: "Paging increases the _____ time.",
+    choices:{A:"execution",B:"all of the mentioned",C:"context–switch",D:"waiting"},
+    answer:"C", explanation:"มี overhead เพิ่มเกี่ยวกับการจัดการหน่วยความจำ/การสลับบริบท"
   },
-  {
-    id: 16,
-    text: "Which one of the following is the address generated by CPU?",
-    choices: { A: "physical address", B: "absolute address", C: "none of the mentioned", D: "logical address" },
-    answer: "D",
-    explanation: "CPU สร้าง logical address แล้ว MMU แปลงเป็น physical",
+  { id: 16, text: "Which one of the following is the address generated by CPU?",
+    choices:{A:"physical address",B:"absolute address",C:"none of the mentioned",D:"logical address"},
+    answer:"D", explanation:"CPU สร้าง logical address แล้ว MMU แปลงเป็น physical"
   },
-  {
-    id: 17,
-    text: "Mapping of network file system protocol to local file system is done by __________",
-    choices: { A: "network file system", B: "remote mirror", C: "volume manager", D: "local file system" },
-    answer: "A",
-    explanation: "ตัว NFS เป็นตัว map โปรโตคอลเครือข่ายให้ใช้งานเหมือนไฟล์โลคอล",
+  { id: 17, text: "Mapping of network file system protocol to local file system is done by __________",
+    choices:{A:"network file system",B:"remote mirror",C:"volume manager",D:"local file system"},
+    answer:"A", explanation:"NFS ทำให้ใช้งานไฟล์บนเครือข่ายเหมือนไฟล์โลคอล"
   },
-  {
-    id: 18,
-    text: "Which of the following are the types of Path names?",
-    choices: { A: "global & relative", B: "relative & local", C: "absolute & relative", D: "local & global" },
-    answer: "C",
-    explanation: "Path name มี 2 แบบหลัก: absolute และ relative",
+  { id: 18, text: "Which of the following are the types of Path names?",
+    choices:{A:"global & relative",B:"relative & local",C:"absolute & relative",D:"local & global"},
+    answer:"C", explanation:"Path name มี absolute และ relative"
   },
-  {
-    id: 19,
-    text: "The first fit, best fit and worst fit are strategies to select a _____",
-    choices: {
-      A: "processor to run the next process",
-      B: "all of the mentioned",
-      C: "free hole from a set of available holes",
-      D: "process from a queue to put in memory",
-    },
-    answer: "C",
-    explanation: "เป็นวิธีเลือกช่องว่าง (hole) ในหน่วยความจำเพื่อจัดสรรให้ process",
+  { id: 19, text: "The first fit, best fit and worst fit are strategies to select a _____",
+    choices:{A:"processor to run the next process",B:"all of the mentioned",C:"free hole from a set of available holes",D:"process from a queue to put in memory"},
+    answer:"C", explanation:"เป็นวิธีเลือกช่องว่าง (hole) ในหน่วยความจำ"
   },
-  {
-    id: 20,
-    text: "For 3 page frames, reference string: 7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1\nHow many page faults does LRU produce?",
-    choices: { A: "15", B: "12", C: "11", D: "10" },
-    answer: "B",
-    explanation: "LRU สำหรับชุดนี้ได้ page faults = 12",
+  { id: 20, text: "For 3 page frames, reference string:\n7 0 1 2 0 3 0 4 2 3 0 3 2 1 2 0 1 7 0 1\nHow many page faults does the LRU page replacement algorithm produce?",
+    choices:{A:"15",B:"12",C:"11",D:"10"},
+    answer:"B", explanation:"LRU สำหรับชุดนี้ได้ page faults = 12"
   },
 ];
+
+let shuffled = [];
+let locked = false;
+
+const quizEl = document.getElementById("quiz");
+const submitBtn = document.getElementById("submitBtn");
+const restartBtn = document.getElementById("restartBtn");
+const summaryEl = document.getElementById("summary");
+
+function shuffle(arr){
+  return arr.map(v=>({v,r:Math.random()})).sort((a,b)=>a.r-b.r).map(x=>x.v);
+}
+
+function render(){
+  quizEl.innerHTML = "";
+  summaryEl.hidden = true;
+  locked = false;
+  submitBtn.disabled = false;
+
+  shuffled = shuffle([...QUESTIONS]);
+
+  shuffled.forEach((q, idx) => {
+    const card = document.createElement("div");
+    card.className = "qcard";
+    card.dataset.qid = q.id;
+
+    const title = document.createElement("p");
+    title.className = "qtitle";
+    title.textContent = `ข้อ ${idx+1}: ${q.text}`;
+    card.appendChild(title);
+
+    const opts = document.createElement("div");
+    opts.className = "options";
+
+    Object.entries(q.choices).forEach(([key, label]) => {
+      const opt = document.createElement("label");
+      opt.className = "option";
+      opt.dataset.key = key;
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = `q_${q.id}`;
+      input.value = key;
+
+      const span = document.createElement("span");
+      span.textContent = `${key}. ${label}`;
+
+      opt.appendChild(input);
+      opt.appendChild(span);
+      opts.appendChild(opt);
+    });
+
+    card.appendChild(opts);
+    quizEl.appendChild(card);
+  });
+}
+
+function getSelected(qid){
+  const checked = document.querySelector(`input[name="q_${qid}"]:checked`);
+  return checked ? checked.value : null;
+}
+
+function markChosenUI(){
+  document.querySelectorAll(".qcard").forEach(card => {
+    const qid = card.dataset.qid;
+    const chosen = getSelected(qid);
+    card.querySelectorAll(".option").forEach(opt => {
+      opt.classList.toggle("chosen", opt.dataset.key === chosen);
+    });
+  });
+}
+
+quizEl.addEventListener("change", () => {
+  if (locked) return;
+  markChosenUI();
+});
+
+function allAnswered(){
+  return shuffled.every(q => getSelected(q.id) !== null);
+}
+
+submitBtn.addEventListener("click", () => {
+  if (locked) return;
+
+  if (!allAnswered()){
+    alert("กรุณาตอบให้ครบทุกข้อก่อนกด Submit");
+    return;
+  }
+
+  locked = true;
+  submitBtn.disabled = true;
+
+  let score = 0;
+
+  shuffled.forEach(q => {
+    const card = document.querySelector(`.qcard[data-qid="${q.id}"]`);
+    const chosen = getSelected(q.id);
+
+    card.querySelectorAll(".option").forEach(opt => {
+      const isChosen = opt.dataset.key === chosen;
+      opt.classList.toggle("dim", !isChosen);
+    });
+
+    card.querySelectorAll("input").forEach(i => i.disabled = true);
+
+    if (chosen === q.answer){
+      score++;
+      card.classList.add("correct");
+      const exp = document.createElement("div");
+      exp.className = "explain";
+      exp.textContent = `อธิบาย: ${q.explanation || "-"}`;
+      card.appendChild(exp);
+    } else {
+      card.classList.add("wrong");
+    }
+  });
+
+  summaryEl.hidden = false;
+  summaryEl.innerHTML = `<b>คะแนนของคุณ: ${score} / ${shuffled.length}</b><div style="color:var(--muted);margin-top:6px;">กด “เริ่มใหม่” เพื่อทำใหม่</div>`;
+});
+
+restartBtn.addEventListener("click", () => render());
+
+render();
